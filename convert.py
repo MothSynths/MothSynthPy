@@ -2,54 +2,64 @@ import subprocess
 import struct
 import esptool
 import random
-
+import os
+import sys
 
 # create a list of filenames to load
 filenames = [
-	"Samples/instrument1.raw",
-    "Samples/instrument2.raw",
-    "Samples/instrument3.raw",
-    "Samples/instrument4.raw",
-    "Samples/instrument5.raw",
-    "Samples/instrument6.raw",
-    "Samples/instrument7.raw",
-    "Samples/instrument8.raw",
-    "Samples/instrument9.raw",
-    "Samples/instrument10.raw",
-    "Samples/instrument11.raw",
-    "Samples/instrument12.raw"
+	"instrument1.raw",
+    "instrument2.raw",
+    "instrument3.raw",
+    "instrument4.raw",
+    "instrument5.raw",
+    "instrument6.raw",
+    "instrument7.raw",
+    "instrument8.raw",
+    "instrument9.raw",
+    "instrument10.raw",
+    "instrument11.raw",
+    "instrument12.raw"
 ]
 
 filenamesDrums = [
-    "Samples/kick1.raw",
-    "Samples/snare1.raw",
-    "Samples/special1.raw",
-    "Samples/hihat1.raw",
-    "Samples/kick2.raw",
-    "Samples/snare2.raw",
-    "Samples/special2.raw",
-    "Samples/hihat2.raw",
-    "Samples/kick3.raw",
-    "Samples/snare3.raw",
-    "Samples/special3.raw",
-    "Samples/hihat3.raw"
+    "kick1.raw",
+    "snare1.raw",
+    "special1.raw",
+    "hihat1.raw",
+    "kick2.raw",
+    "snare2.raw",
+    "special2.raw",
+    "hihat2.raw",
+    "kick3.raw",
+    "snare3.raw",
+    "special3.raw",
+    "hihat3.raw"
 ]
 
 filenamesSfx = [
-    "Samples/sfx1.raw",
-    "Samples/sfx2.raw",
-    "Samples/sfx3.raw",
-    "Samples/sfx4.raw",
-    "Samples/sfx5.raw",
-    "Samples/sfx6.raw",
-    "Samples/sfx7.raw",
-    "Samples/sfx8.raw",
-    "Samples/sfx9.raw",
-    "Samples/sfx10.raw",
-    "Samples/sfx11.raw",
-    "Samples/sfx12.raw"
+    "sfx1.raw",
+    "sfx2.raw",
+    "sfx3.raw",
+    "sfx4.raw",
+    "sfx5.raw",
+    "sfx6.raw",
+    "sfx7.raw",
+    "sfx8.raw",
+    "sfx9.raw",
+    "sfx10.raw",
+    "sfx11.raw",
+    "sfx12.raw"
 ]
 
+def get_executable_dir():
+    """Get the directory where the executable is located."""
+    if getattr(sys, 'frozen', False):
+        # If the app is frozen by PyInstaller, sys._MEIPASS holds the path to the temp directory
+        return os.path.dirname(sys.executable)
+    else:
+        # If the app is run normally (not packaged), return the current directory
+        return os.path.dirname(os.path.abspath(__file__))
+    
 import serial.tools.list_ports
 comList = serial.tools.list_ports.comports()
 howTouse = "\33[35mUse a sound editor that can save RAW files, such as Audacity (free)\n"
@@ -83,9 +93,9 @@ com = comList[comPortIndex].device
 print("\033[H\033[J")
 # load MothOS.bin.into file and convert to 64 bit integer list
 # copy MothOS.bin to MothOS2.ino.bin
-with open("MothOS.ino.bin", "rb") as f:
+with open(os.path.join(get_executable_dir(),"MothOS.ino.bin"), "rb") as f:
     MothOSCopy = f.read()
-    with open("MothOS2.ino.bin", "wb") as f2:
+    with open(os.path.join(get_executable_dir(),"MothOS2.ino.bin"), "wb") as f2:
         f2.write(MothOSCopy)
 
 #$for loop 0 to 1
@@ -93,12 +103,13 @@ tempoIndex = 0
 for encodeI in range(0, 3):
     
     # capture output into a variable
-    result = subprocess.run(["python3", "-m", "esptool", "image_info", "MothOS2.ino.bin"], capture_output=True, text=True)
+    result = subprocess.run(["python3", "-m", "esptool", "image_info", os.path.join(get_executable_dir(),"MothOS2.ino.bin")], capture_output=True, text=True)
     output = result.stdout
 
-    with open("MothOS2.ino.bin", "rb") as f:
+    with open(os.path.join(get_executable_dir(),"MothOS2.ino.bin"), "rb") as f:
         MothOS = f.read()
         #convert mothOS into int list
+        print("MOTHOS LENGTH {}",len(MothOS))
         MothOSInts = []
         for i in range(0, len(MothOS), 4):
             MothOSInts.append(struct.unpack("<i", MothOS[i:i+4])[0])
@@ -128,7 +139,7 @@ for encodeI in range(0, 3):
                     sequenceIndex = j
                     print("Encoding {}".format(filename))
                     #load filename and convert to signed 16 bit integers
-                    with open(filename, "rb") as f:
+                    with open(os.path.join(get_executable_dir(),"Samples",filename), "rb") as f:
                         sample = f.read()
                         sampleInts = []
                         for i in range(0, len(sample), 2):
@@ -155,7 +166,7 @@ for encodeI in range(0, 3):
                     sequenceIndex = j
                     print("Encoding {}".format(filename))
                     #load filename and convert to signed 16 bit integers
-                    with open(filename, "rb") as f:
+                    with open(os.path.join(get_executable_dir(),"Samples",filename), "rb") as f:
                         sample = f.read()
                         sampleInts = []
                         for i in range(0, len(sample), 2):
@@ -181,7 +192,7 @@ for encodeI in range(0, 3):
                     sequenceIndex = j
                     print("Encoding {}".format(filename))
                     #load filename and convert to signed 16 bit integers
-                    with open(filename, "rb") as f:
+                    with open(get_executable_dir(),os.path.join("Samples",filename), "rb") as f:
                         sample = f.read()
                         sampleInts = []
                         max = len(sample)
@@ -221,10 +232,10 @@ for encodeI in range(0, 3):
     #replace last 32 bytes with hash
     MothOS = MothOS[:len(MothOS) - 32] + hashBytes
      
-    with open("MothOS2.ino.bin", "wb") as f:
+    with open(os.path.join(get_executable_dir(),"MothOS2.ino.bin"), "wb") as f:
         f.write(MothOS)
 
-    result = subprocess.run(["python3", "-m", "esptool", "image_info", "MothOS2.ino.bin"], capture_output=True, text=True)
+    result = subprocess.run(["python3", "-m", "esptool", "image_info", os.path.join(get_executable_dir(),"MothOS2.ino.bin")], capture_output=True, text=True)
     output = result.stdout
     #print(output)
     
@@ -240,7 +251,7 @@ if len(comList) == 0:
 
 
 
-args = " --port "+com+" --chip esp32s3 --baud 921600  --before default_reset --after hard_reset write_flash -e -z --flash_mode keep --flash_freq keep --flash_size keep 0x0 MothOS.ino.bootloader.bin 0x8000 MothOS.ino.partitions.bin 0xe000 boot_app0.bin 0x10000 MothOS2.ino.bin"
+args = " --port "+com+" --chip esp32s3 --baud 921600  --before default_reset --after hard_reset write_flash -e -z --flash_mode keep --flash_freq keep --flash_size keep 0x0 "+os.path.join(get_executable_dir(),"MothOS.ino.bootloader.bin")+" 0x8000 "+os.path.join(get_executable_dir(),"MothOS.ino.partitions.bin")+" 0xe000 "+os.path.join(get_executable_dir(),"boot_app0.bin")+" 0x10000 "+os.path.join(get_executable_dir(),"MothOS2.ino.bin")
 
 esptool.main(args.split())
 
