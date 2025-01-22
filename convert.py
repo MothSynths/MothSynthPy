@@ -7,6 +7,7 @@ import sys
 
 # create a list of filenames to load
 filenames = [
+    "instrument0.raw",
 	"instrument1.raw",
     "instrument2.raw",
     "instrument3.raw",
@@ -36,20 +37,6 @@ filenamesDrums = [
     "hihat3.raw"
 ]
 
-filenamesSfx = [
-    "sfx1.raw",
-    "sfx2.raw",
-    "sfx3.raw",
-    "sfx4.raw",
-    "sfx5.raw",
-    "sfx6.raw",
-    "sfx7.raw",
-    "sfx8.raw",
-    "sfx9.raw",
-    "sfx10.raw",
-    "sfx11.raw",
-    "sfx12.raw"
-]
 
 def get_executable_dir():
     """Get the directory where the executable is located."""
@@ -129,9 +116,9 @@ for encodeI in range(0, 3):
          
         #encode lenths of samples
         lI = 30001
-        for i in range(1, 11):
+        for i in range(1, 12):
             filename = filenames[i-1]
-            sequence = [1, 2, 1, 3, 1, 4, 1, i]
+            sequence = [1, 2, 1, 3, 1, 4, 1, i-1]
             lengthIndex = MothOSInts.index(lI)
             sequenceIndex = 0
             for j in range(len(MothOSInts) - len(sequence)):
@@ -179,32 +166,6 @@ for encodeI in range(0, 3):
                         if max > 16000:
                             max = 16000
                         for r in range(0, max):
-                            MothOSInts[sequenceIndex+r] = sampleInts[r]
-                
-                    break
-         
-        for i in range(1, 13):
-            filename = filenamesSfx[i-1]
-            sequence = [3, 2, 1, 3, 1, 4, 1, i]
-            sequenceIndex = 0
-            for j in range(len(MothOSInts) - len(sequence)):
-                if MothOSInts[j:j + len(sequence)] == sequence:
-                    sequenceIndex = j
-                    print("Encoding {}".format(filename))
-                    #load filename and convert to signed 16 bit integers
-                    with open(get_executable_dir(),os.path.join("Samples",filename), "rb") as f:
-                        sample = f.read()
-                        sampleInts = []
-                        max = len(sample)
-                        for i in range(0, len(sample), 2):
-                            sampleInts.append(struct.unpack("<h", sample[i:i+2])[0])
-                       
-                        max = len(sampleInts)
-                        #limit max to 16000
-                        if max > 16000:
-                            max = 16000
-                            
-                        for r in range(0,  max):
                             MothOSInts[sequenceIndex+r] = sampleInts[r]
                 
                     break
